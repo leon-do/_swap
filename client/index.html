@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script src="./lib/jquery.js"></script>
+	<script src="./lib/buffer.js"></script>
+	<script src="./lib/bitcore.js"></script>
+	<script src="./lib/ethers.js"></script>
+	<script src="./lib/solc.js"></script>
+
+	<script src="./wallet/privateKeys.js"></script>
+	<script src="./wallet/bitcoin.js"></script>
+	<script src="./wallet/ethereum.js"></script>
+</head>
+<body>
+
+	<input id='amount1' onkeyup='displayAmount2()' type='number' value="0.0222">
+
+	<select>
+		<option id='coin1' value='ethereum'>ethereum</option>
+	</select>
+
+	----->
+
+	<input id='amount2' disabled type='number' value='0.0111'>
+
+	<select>
+		<option id='coin2' value='bitcoin'>bitcoin</option>
+	</select>
+
+	<br><br><br>
+
+	<button onclick='startTransaction()'> start transaction </button>
+
+</body>
+</html>
+
+
+<script>
+
+	// combine wallets
+	const wallet = {
+		bitcoin: bitcoin,
+		ethereum: ethereum,
+	}
+
+	// display _script.amount2 dynamically
+	function displayAmount2() {
+		// example: 1 ethereum for 0.5 bitcoin
+		const ratio = 0.5
+		document.getElementById('amount2').value = document.getElementById('amount1').value * ratio
+	}
+
+	async function startTransaction() {
+
+		// _swap will contain all of the data needed to swap
+		let _swap = {
+			hash: null,
+			key: null,
+			coin1: null,
+			coin2: null,
+			amount1: null,
+			amount2: null,
+			transaction1: null,
+			transaction2: null,
+			buyerAddress1: null,
+			buyerAddress2: null,
+			sellerAddress1: null,
+			sellerAddress2: null,
+		}
+
+		// get values from DOM
+		_swap.coin1 = document.getElementById('coin1').value
+		_swap.coin2 = document.getElementById('coin2').value
+		_swap.amount1 = document.getElementById('amount1').value
+		_swap.amount2 = document.getElementById('amount2').value
+		_swap.buyerAddress1 = await wallet[_swap.coin1].address(_swap)
+		_swap.buyerAddress2 = await wallet[_swap.coin2].address(_swap)
+
+		// send _swap data to SS server to open transaction
+		_swap = await $.post('http://localhost:5000/open', _swap)
+
+		// // create and broadcast transaction on client side
+		// _swap.transaction1 = await wallet[_swap.coin1].pay(_swap)
+
+		// // send _swap data to SS server to close transaction
+		// _swap = await $.post('http://localhost:5000/close', _swap)
+
+		// await wallet[_swap.coin2].spend(_swap)
+	}
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
