@@ -25,6 +25,7 @@ express()
 	_swap.sellerAddress1 = await wallet[_swap.coin1].address(_swap)
 	_swap.sellerAddress2 = await wallet[_swap.coin2].address(_swap)
 	_swap.transaction2 = await wallet[_swap.coin2].pay(_swap)
+	console.log('server send', _swap)
 	res.send(_swap)
 
 })

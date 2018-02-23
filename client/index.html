@@ -44,6 +44,7 @@
 		ethereum: ethereum,
 	}
 
+
 	// display _script.amount2 dynamically
 	function displayAmount2() {
 		// example: 1 ethereum for 0.5 bitcoin
@@ -77,16 +78,21 @@
 		_swap.buyerAddress1 = await wallet[_swap.coin1].address(_swap)
 		_swap.buyerAddress2 = await wallet[_swap.coin2].address(_swap)
 
+		console.log('open', _swap)
 		// send _swap data to SS server to open transaction
 		_swap = await $.post('http://localhost:5000/open', _swap)
 
-		// // create and broadcast transaction on client side
-		// _swap.transaction1 = await wallet[_swap.coin1].pay(_swap)
+		console.log('response', _swap)
+		// create and broadcast transaction on client side
+		_swap.transaction1 = await wallet[_swap.coin1].pay(_swap)
 
-		// // send _swap data to SS server to close transaction
-		// _swap = await $.post('http://localhost:5000/close', _swap)
+		console.log('close', _swap)
+		// send _swap data to SS server to close transaction
+		_swap = await $.post('http://localhost:5000/close', _swap)
 
-		// await wallet[_swap.coin2].spend(_swap)
+		console.log('complete', _swap)
+		await wallet[_swap.coin2].spend(_swap)
+		
 	}
 
 

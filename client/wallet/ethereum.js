@@ -13,21 +13,22 @@ const ethereum = {
 			const timeLock = 60
 
 			// solidity code
-			const contract = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${timeLock} seconds; address public toAddress = ${_swap.sellerAddress1}; bytes32 public hash = ${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
+			const contract = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${timeLock} seconds; address public toAddress = ${_swap.sellerAddress1}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
 
-			BrowserSolc.loadVersion("soljson-v0.4.6+commit.2dabbdf0.js", async (compiler) => {
-				const result = compiler.compile(contract, 1);
-				const contractByteCode = result.contracts.x.bytecode
-				const contractAbi = result.contracts.x.interface
+			BrowserSolc.loadVersion("soljson-v0.4.20+commit.3155dd80.js", async (compiler) => {
+				const result = compiler.compile(contract, 1)
+
+				const contractByteCode = '0x' + result.contracts[':HTLC'].bytecode
+				const contractAbi = result.contracts[':HTLC'].interface
+
 				const rawTransaction = ethers.Contract.getDeployTransaction(contractByteCode, contractAbi)
-				console.log(bytecode, abi)
-				console.log(rawTransaction.data)
 
 				const transaction = await wallet.sendTransaction({
 					data: rawTransaction.data,
 					value: ethers.utils.parseEther(_swap.amount2.toString())
 				})
 		
+				console.log('transaction', transaction.hash)
 				resolve(transaction.hash)
 			})
 		})
