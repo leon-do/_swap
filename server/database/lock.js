@@ -1,6 +1,7 @@
+// sha256 hash of 'password' is 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
 module.exports = {
 	hash: (_swap) => {
-		return '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'
+		return '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'
 	},
 
 	key: (_swap) => {

@@ -19,26 +19,32 @@ express()
 
 .post('/open', async (req, res) => {
 	res.header('Access-Control-Allow-Origin', '*')
-
-	const _swap = req.body
-	_swap.hash = await lock.hash(_swap)
-	_swap.sellerAddress1 = await wallet[_swap.coin1].address(_swap)
-	_swap.sellerAddress2 = await wallet[_swap.coin2].address(_swap)
-	_swap.transaction2 = await wallet[_swap.coin2].pay(_swap)
-	console.log('server send', _swap)
-	res.send(_swap)
-
+	try {
+		const _swap = req.body
+		_swap.hash = await lock.hash(_swap)
+		_swap.sellerAddress1 = await wallet[_swap.coin1].address(_swap)
+		_swap.sellerAddress2 = await wallet[_swap.coin2].address(_swap)
+		_swap.transaction2 = await wallet[_swap.coin2].pay(_swap)
+		console.log('server send', _swap)
+		res.send(_swap)
+	} catch (e) {
+		console.log('/open error', e)
+	}
 })
 
 .post('/close', async (req, res) => {
 	res.header('Access-Control-Allow-Origin', '*')
-	
-	const _swap = req.body
-	_swap.key = await lock.key(_swap)
-	await wallet[_swap.coin1].spend(_swap)
+	try {
+		const _swap = req.body
+		_swap.key = await lock.key(_swap)
+		await wallet[_swap.coin1].spend(_swap)
 
-	console.log('\n\n\n swap before close', _swap)
-	res.send(_swap)
+		console.log('\nswap before close', _swap)
+		res.send(_swap)
+	} catch (e) {
+		console.log('/close error', e)
+	}
+	
 })
 
 .listen(PORT, () => {console.log(PORT)})

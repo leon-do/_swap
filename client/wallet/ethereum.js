@@ -5,16 +5,16 @@ const ethereum = {
 
 	pay: (_swap) => {
 
-		const privateKey = '0x90ce4c3b2cbe150f941a07e50ea81426c71162f083651db362878d04b348ee06'
-    	const provider = ethers.providers.getDefaultProvider('rinkeby');
-		const wallet = new ethers.Wallet(privateKey, provider)
-
 		return new Promise((resolve, reject) => {
+			const privateKey = '0x90ce4c3b2cbe150f941a07e50ea81426c71162f083651db362878d04b348ee06'
+	    	const provider = ethers.providers.getDefaultProvider('rinkeby');
+			const wallet = new ethers.Wallet(privateKey, provider)
 			const timeLock = 60
 
 			// solidity code
 			const contract = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${timeLock} seconds; address public toAddress = ${_swap.sellerAddress1}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
 
+			// load compiler
 			BrowserSolc.loadVersion("soljson-v0.4.20+commit.3155dd80.js", async (compiler) => {
 				const result = compiler.compile(contract, 1)
 
@@ -28,17 +28,59 @@ const ethereum = {
 					value: ethers.utils.parseEther(_swap.amount2.toString())
 				})
 		
-				console.log('transaction', transaction.hash)
-				resolve(transaction.hash)
+				let contractAddress
+				while (contractAddress === undefined) {
+					contractAddress = await getContractAddress(transaction.hash)
+				}
+				resolve(contractAddress)
 			})
 		})
 	},
 
 	spend: (_swap) => {
-		return 'spendScript1220020'
+		return new Promise((resolve, reject) => {
+			const privateKey = '0x90ce4c3b2cbe150f941a07e50ea81426c71162f083651db362878d04b348ee06'
+	  		const provider = ethers.providers.getDefaultProvider('rinkeby');
+			const wallet = new ethers.Wallet(privateKey, provider)
+			const timeLock = 60
+
+			// solidity code
+			const contract = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${timeLock} seconds; address public toAddress = ${_swap.sellerAddress1}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
+			
+			// load compiler
+			BrowserSolc.loadVersion("soljson-v0.4.20+commit.3155dd80.js", async (compiler) => {
+				const result = compiler.compile(contract, 1)
+
+				const contractByteCode = '0x' + result.contracts[':HTLC'].bytecode
+				const contractAbi = result.contracts[':HTLC'].interface
+
+				// @TODO interact with contract
+				const interface = new ethers.Interface(contractAbi)
+				console.log('interface', interface)
+				const rawTransaction = interface.functions.checkKey(_swap.key)
+				console.log('rawTransaction', rawTransaction)
+
+				const transaction = await wallet.sendTransaction({
+					data: rawTransaction.data,
+					to: _swap.transaction1
+				})
+		
+				// get the contract address from transaction hash
+				return transaction.hash
+			})
+		})
 	},
 
 	redeem: (_swap) => {
 		return 'redeemScript992929'
 	},
+}
+
+async function getContractAddress(addressHash) {
+	try {
+		const data = await $.get(`https://api-rinkeby.etherscan.io/api?module=proxy&action=eth_getTransactionReceipt&txhash=${addressHash}`)
+		return data.result.contractAddress
+	} catch (e) {
+		return undefined
+	}
 }

@@ -7,7 +7,7 @@
      amount2: 0.11,
      transaction1: '0x4CD464eD23c06Ad3196c12e333cF142cA11747A5',
      transaction2: '2N3upnrHJEqcXUAnS2H6L6zDnJBqmTqhHhG',
-     buyerAddress1: '0xethAddress',
+     buyerAddress1: '0xc70103eddcA6cDf02952365bFbcf9A4A76Cd2066',
      buyerAddress2: '0x14723a09acff6d2a60dcdf7aa4aff308fddc160c',
      buyerScript1: '',
      buyerScript2: '',
