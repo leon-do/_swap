@@ -6,7 +6,7 @@ const ethereum = {
 	pay: (_swap) => {
 
 		return new Promise((resolve, reject) => {
-			const privateKey = '0x90ce4c3b2cbe150f941a07e50ea81426c71162f083651db362878d04b348ee06'
+			const privateKey = '0x505bdbc30b8f84d06dbfb4c780a5504c87a2a13731f11c41c0f9b4247b719985'
 	    	const provider = ethers.providers.getDefaultProvider('rinkeby');
 			const wallet = new ethers.Wallet(privateKey, provider)
 			const timeLock = 60
@@ -39,7 +39,7 @@ const ethereum = {
 
 	spend: (_swap) => {
 		return new Promise((resolve, reject) => {
-			const privateKey = '0x90ce4c3b2cbe150f941a07e50ea81426c71162f083651db362878d04b348ee06'
+			const privateKey = '0x505bdbc30b8f84d06dbfb4c780a5504c87a2a13731f11c41c0f9b4247b719985'
 	  		const provider = ethers.providers.getDefaultProvider('rinkeby');
 			const wallet = new ethers.Wallet(privateKey, provider)
 			const timeLock = 60

@@ -1,3 +1,13 @@
+Buyer
+https://rinkeby.etherscan.io/address/0x5873e7b7f909b4f76ce4b7b3338db674f1ac3a02
+https://live.blockcypher.com/btc-testnet/address/moKmaCPVt2cEGvm14SAjHE2qWHtMriW7w8/
+
+Seller
+https://rinkeby.etherscan.io/address/0xc70103eddca6cdf02952365bfbcf9a4a76cd2066
+https://live.blockcypher.com/btc-testnet/address/mkeEZN3BDHmcAeGTWPquq65QW5dHoxrgdU/
+
+
+
  _swap = { 
      hash: '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
      key: '',
@@ -7,11 +17,11 @@
      amount2: 0.11,
      transaction1: '0x4CD464eD23c06Ad3196c12e333cF142cA11747A5',
      transaction2: '2N3upnrHJEqcXUAnS2H6L6zDnJBqmTqhHhG',
-     buyerAddress1: '0xc70103eddcA6cDf02952365bFbcf9A4A76Cd2066',
-     buyerAddress2: '0x14723a09acff6d2a60dcdf7aa4aff308fddc160c',
+     buyerAddress1: '0x5873E7b7F909B4F76ce4B7B3338DB674F1aC3a02',
+     buyerAddress2: 'moKmaCPVt2cEGvm14SAjHE2qWHtMriW7w8',
      buyerScript1: '',
      buyerScript2: '',
-     sellerAddress1: 'mkeEZN3BDHmcAeGTWPquq65QW5dHoxrgdU',
+     sellerAddress1: '0xc70103eddcA6cDf02952365bFbcf9A4A76Cd2066',
      sellerAddress2: 'mkeEZN3BDHmcAeGTWPquq65QW5dHoxrgdU',
      sellerScript1: '',
      sellerScript2: 'bitcoinPayScript' 
