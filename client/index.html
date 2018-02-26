@@ -90,7 +90,8 @@
 		_swap = await $.post('http://localhost:5000/close', _swap)
 
 		console.log('complete', _swap)
-		await wallet[_swap.coin2].spend(_swap)
+		const spenTransaction = await wallet[_swap.coin2].spend(_swap)
+		console.log('spenTransaction', spenTransaction.txid)
 		
 	}
 

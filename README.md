@@ -1,9 +1,13 @@
 Buyer
-https://rinkeby.etherscan.io/address/0x5873e7b7f909b4f76ce4b7b3338db674f1ac3a02
+4.273617987990288023 -  4.261937634990288023
+https://rinkeby.etherscan.io/address/0x5873E7b7F909B4F76ce4B7B3338DB674F1aC3a02
+1.3
 https://live.blockcypher.com/btc-testnet/address/moKmaCPVt2cEGvm14SAjHE2qWHtMriW7w8/
 
 Seller
-https://rinkeby.etherscan.io/address/0xc70103eddca6cdf02952365bfbcf9a4a76cd2066
+3.528558937068342 - 3.539605167068342
+https://rinkeby.etherscan.io/address/0xe0578e4fd431e57b38c7bcd72036629f803df515
+18.48596949
 https://live.blockcypher.com/btc-testnet/address/mkeEZN3BDHmcAeGTWPquq65QW5dHoxrgdU/
 
 

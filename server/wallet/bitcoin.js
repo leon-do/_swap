@@ -13,11 +13,11 @@ module.exports = {
         return new Promise(async (resolve, reject) => {
             // convert wif to a private key
             const privateKey = bitcore.PrivateKey.fromWIF(private_key.bitcoin)
-            console.log('privateKey', privateKey)
+            console.log('\n\nprivateKey =', privateKey)
 
             // get public key
-            var publicKey = new bitcore.PublicKey(privateKey)
-            console.log('\n\npublicKey =', publicKey)
+            var myPublicKey = new bitcore.PublicKey(privateKey)
+            console.log('\n\nmyPublicKey =', myPublicKey)
 
             // convert priv key to address
             const fromAddress = privateKey.toAddress().toString()
@@ -25,7 +25,7 @@ module.exports = {
 
             // get utxo data to add to new transaction
             const utxoData = await payUtxoData(fromAddress)
-            console.log('\n\nutxoData =', utxoData)
+            //console.log('\n\noutput =', output)
 
             // get transaction id 9ce9ceb57475b631a64e162b539a915122bda10510315ec6189316d502424fa8
             const oldTransaction = utxoData.txid
@@ -35,8 +35,6 @@ module.exports = {
             const inputAmount = utxoData.value_int
             console.log('\n\ninputAmount =', inputAmount)
 
-            // https://www.youtube.com/watch?v=YoPV9hfm6yk&t=9m57s
-            // 76a9146450e6ad3689b8fcf4e43680c0ea6e56e17c0a3888ac
             // https://chainquery.com/bitcoin-api/decodescript
             const scriptPubKey = utxoData.script_pub_key
             console.log('\n\nscriptPubKey =', scriptPubKey)
@@ -55,6 +53,9 @@ module.exports = {
             });
             console.log('\n\nutxo =', utxo)
 
+            const hashKey = bitcore.crypto.Hash.sha256(new Buffer(_swap.key)).toString('hex')
+            console.log('\n\nhashKey = ', hashKey)
+
             // build the script
             var script = bitcore
                 .Script()
@@ -69,27 +70,35 @@ module.exports = {
                 .add('OP_DROP')
                 .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(fromAddress)))
                 .add('OP_ENDIF')
+            console.log('script.toString() =', script.toString())
 
-            const scriptAddress = bitcore.Address.payingTo(script).toString()
+
+            const scriptAddress = bitcore.Address.payingTo(script)
             console.log('\n\nscriptAddress =', scriptAddress)
 
             const newTransaction = bitcore
                 .Transaction() // create new tx
                 .from(utxo) // from oldTransaction
-                .to(scriptAddress, _swap.amount2 * 100000000)
+                .addOutput(
+                    new bitcore.Transaction.Output({
+                        script: script,
+                        satoshis: _swap.amount2 * 100000000 - 9999,
+                    })
+                )
                 .change(fromAddress)
                 .sign(privateKey)
 
-            console.log( '\n\nnewTransaction =', require('util').inspect(newTransaction.toObject(), false, null) )
+            console.log('\n\nnewTransaction =', require('util').inspect(newTransaction.toObject(), false, null) )
 
             // https://live.blockcypher.com/btc-testnet/decodetx/
             console.log('\n\nSerialized Transaction =\n', newTransaction.toString())
 
-            // broadcast transaction
             insight.broadcast(newTransaction.toString(), function(error, transactionId) {
+                console.log('error', error)
                 console.log('transactionId', transactionId)
                 resolve(transactionId)
-            });
+            })
+
         })
     },
 
@@ -165,17 +174,8 @@ module.exports = {
 
 
 //  https://testnet-api.smartbit.com.au/v1/blockchain/address/mpfNnLq357BjK5btmefSGT38PsQQgMkZXB
+//  https://testnet-api.smartbit.com.au/v1/blockchain/address/mpfNnLq357BjK5btmefSGT38PsQQgMkZXB
 function payUtxoData (_address) {
-
-    // // @TODO remove when you have internet
-    // return {
-    //     value_int: 20222,
-    //     txid: '9718c4b4edcfdd307ca7f663d7d39fe4f46cbd1b1896e3a334bd2563c5cc5bb2',
-    //     script_pub_key: '76a91438391dfb844190c70ecea35731a50eeb6ab8637388ac',
-    //     vout: 0
-    // }
-
-
     return new Promise(resolve => {
         request(`https://testnet-api.smartbit.com.au/v1/blockchain/address/${_address}`, (err, res, body) => {
             const data = JSON.parse(body)
