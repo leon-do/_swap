@@ -6,7 +6,7 @@ const bitcoin = {
 
     pay: async (_swap) => {
         // from privateKey.js
-        const privateKeyWIF = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
+        const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
         console.log('\n\nprivateKey =', privateKey)
 
         // get public key
@@ -18,7 +18,7 @@ const bitcoin = {
         console.log('\n\nfromAddress =', privateKey.toAddress().toString())
 
         // get utxo data to add to new transaction
-        const utxoData = await getUtxoData(fromAddress)
+        const utxoData = await payUtxoData(fromAddress)
         //console.log('\n\noutput =', output)
 
         // get transaction id 9ce9ceb57475b631a64e162b539a915122bda10510315ec6189316d502424fa8
@@ -37,7 +37,6 @@ const bitcoin = {
         const vout = utxoData.vout
         console.log('\n\nvout =', vout)
 
-
         // create unsigned transaction out
         const utxo = new bitcore.Transaction.UnspentOutput({
             "txid" : oldTransaction,
@@ -48,20 +47,14 @@ const bitcoin = {
         });
         console.log('\n\nutxo =', utxo)
 
-
-        // ♫♪.ılılıll|̲̅̅●̲̅̅|̲̅̅=̲̅̅|̲̅̅●̲̅̅|llılılı.♫♪.♫♪.ılılıll|̲̅̅●̲̅̅|̲̅̅=̲̅̅|̲̅̅●̲̅̅|llılılı.♫♪.  ♫♪.ılılıll|̲̅̅●̲̅̅|̲̅̅=̲̅̅|̲̅̅●̲̅̅|llılılı.♫♪.
-
-        const hashKey = bitcore.crypto.Hash.sha256(new Buffer(_swap.key)).toString('hex')
-        console.log('\n\nhashKey = ', hashKey)
-
         // build the script
         var script = bitcore
             .Script()
             .add('OP_IF')
             .add('OP_SHA256')
-            .add(new Buffer(hashKey.toString(), 'hex'))
+            .add(new Buffer(_swap.hash, 'hex'))
             .add('OP_EQUALVERIFY')
-            .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.buyerAddress2)))
+            .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.sellerAddress1)))
             .add('OP_ELSE')
             .add(bitcore.crypto.BN.fromNumber(1513412288).toScriptNumBuffer())
             .add('OP_CHECKLOCKTIMEVERIFY')
@@ -80,21 +73,18 @@ const bitcoin = {
             .addOutput(
                 new bitcore.Transaction.Output({
                     script: script,
-                    satoshis: _swap.amount2 * 100000000 - 9999,
+                    satoshis: _swap.amount1 * 100000000 - 9999,
                 })
             )
-            // .to(scriptAddress, outputAmount - 1000)
             .change(fromAddress)
             .sign(privateKey)
 
-        console.log( '\n\nnewTransaction =', require('util').inspect(newTransaction.toObject(), false, null) )
-
         // https://live.blockcypher.com/btc-testnet/decodetx/
-        console.log('\n\nSerialized Transaction =\n', newTransaction.serialize())
+        console.log('\n\nSerialized Transaction =\n', newTransaction.toString())
 
         // @TODO broadcast transaction
-        return await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: newTransaction.toString()})
-
+        const data = await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: newTransaction.toString()})
+        return data.txid
     },
 
     spend: async (_swap) => {
@@ -154,7 +144,8 @@ const bitcoin = {
 
         console.log('\n\n\ntransaction =', refundTransaction.toString())
 
-        return await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: refundTransaction.toString()})
+        const data = await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: refundTransaction.toString()})
+        return data.txid
     },
 
     redeem: async (_swap) => {

@@ -1,3 +1,4 @@
+const request = require('request')
 const ethers = require('ethers')
 const solc = require('solc')
 const private_key = require('../database/private_key.js')
@@ -33,9 +34,11 @@ module.exports = {
 		
 		let contractAddress
 		while (contractAddress === undefined) {
+			await pause(5000)
 			contractAddress = await getContractAddress(transaction.hash)
+			console.log('waiting for contract address...', contractAddress, transaction.hash)
 		}
-		resolve(contractAddress)
+		return contractAddress
 	},
 
 	spend: async (_swap) => {
@@ -85,10 +88,24 @@ module.exports = {
 }
 
 async function getContractAddress(addressHash) {
-	try {
-		const data = await $.get(`https://api-rinkeby.etherscan.io/api?module=proxy&action=eth_getTransactionReceipt&txhash=${addressHash}`)
-		return data.result.contractAddress
-	} catch (e) {
-		return undefined
-	}
+	return new Promise ((resolve, reject) => {
+		request(`https://api-rinkeby.etherscan.io/api?module=proxy&action=eth_getTransactionReceipt&txhash=${addressHash}`, (err, res, body) => {
+	        try {
+	        	const data = JSON.parse(body)
+	        	console.log('dataaa', data)
+	        	resolve(data.result.contractAddress)
+	        } catch (e) {
+	        	resolve(undefined)
+	        }
+		})
+	})
+}
+
+
+function pause(milliseconds){
+	return new Promise(resolve => {
+		setTimeout(function(){ 
+			resolve(true)
+		}, 3000)
+	})
 }

@@ -21,6 +21,7 @@ express()
 	res.header('Access-Control-Allow-Origin', '*')
 	try {
 		const _swap = req.body
+		console.log('open _swap =', _swap)
 		_swap.hash = await lock.hash(_swap)
 		_swap.sellerAddress1 = await wallet[_swap.coin1].address(_swap)
 		_swap.sellerAddress2 = await wallet[_swap.coin2].address(_swap)

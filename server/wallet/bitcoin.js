@@ -53,9 +53,6 @@ module.exports = {
             });
             console.log('\n\nutxo =', utxo)
 
-            const hashKey = bitcore.crypto.Hash.sha256(new Buffer(_swap.key)).toString('hex')
-            console.log('\n\nhashKey = ', hashKey)
-
             // build the script
             var script = bitcore
                 .Script()
@@ -96,7 +93,7 @@ module.exports = {
             insight.broadcast(newTransaction.toString(), function(error, transactionId) {
                 console.log('error', error)
                 console.log('transactionId', transactionId)
-                resolve(transactionId)
+                resolve(transactionId.txid)
             })
 
         })
@@ -106,43 +103,47 @@ module.exports = {
         return new Promise (async (resolve, reject) => {
             // convert wif to a private key
             const privateKey = bitcore.PrivateKey.fromWIF(private_key.bitcoin)
-            console.log('privateKey', privateKey)
+            console.log('spend():privateKey', privateKey)
 
             // get public key
             var myPublicKey = new bitcore.PublicKey(privateKey)
-            console.log('myPublicKey', myPublicKey)
+            console.log('spend():myPublicKey', myPublicKey)
 
             // convert priv key to address
             const fromAddress = privateKey.toAddress().toString()
             console.log(fromAddress)
 
             // get utxo data to add to new transaction
-            const utxoData = await spendUtxoData(_swap.transaction2)
-            console.log('utxoData =', utxoData)
+            let utxoData = undefined
+            while (utxoData === undefined){
+                await pause(5000)
+                utxoData = await spendUtxoData(_swap.transaction1)
+            }
+            console.log('spend():utxoData =', utxoData)
 
             // get value 1921977
             const inputAmount = utxoData.value_int
-            console.log('inputAmount', inputAmount)
+            console.log('spend():inputAmount', inputAmount)
 
             const scriptPubKey = utxoData.script_pub_key
-            console.log('scriptPubKey', scriptPubKey)
+            console.log('spend():scriptPubKey', scriptPubKey)
 
             const sequenceNumber = utxoData.sequence
-            console.log('sequenceNumber', sequenceNumber)
+            console.log('spend():sequenceNumber', sequenceNumber)
 
             const vout = utxoData.vout
-            console.log('vout', vout)
+            console.log('spend():vout', vout)
 
             // https://bitcore.io/api/lib/unspent-output
             const refundTransaction = new bitcore.Transaction().from({
-                txid: _swap.transaction2,
+                txid: _swap.transaction1,
                 vout: vout,
                 scriptPubKey: new bitcore.Script(scriptPubKey).toHex(), //  https://github.com/bitpay/bitcore-lib/blob/master/docs/examples.md
                 satoshis: inputAmount,
             })
                 .to(fromAddress, inputAmount - 1000) // or Copay: mqsscUaTAy3pjwgg7LVnQWr2dFCKphctM2
                 .lockUntilDate(Math.floor(Date.now() / 1001)); // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
-            console.log('refundTransaction', refundTransaction)
+            console.log('spend():refundTransaction', refundTransaction)
 
             refundTransaction.inputs[0].sequenceNumber = 0; // the CLTV opcode requires that the input's sequence number not be finalized
 
@@ -162,7 +163,7 @@ module.exports = {
             // broadcast transaction
             insight.broadcast(refundTransaction.toString(), function(error, transactionId) {
                 console.log('transactionId', transactionId)
-                resolve(transactionId)
+                resolve(transactionId.txid)
             });
         })
     },
@@ -203,14 +204,20 @@ function payUtxoData (_address) {
 function spendUtxoData (_transactionId) {
     return new Promise(resolve => {
         request(`https://testnet-api.smartbit.com.au/v1/blockchain/tx/${_transactionId}`, (err, res, body) => {
-            const data = JSON.parse(body)
-            return resolve({
-                value_int: data.transaction.outputs[0].value_int,
-                txid: _transactionId,
-                script_pub_key: data.transaction.outputs[0].script_pub_key.hex,
-                vout: data.transaction.outputs[0].n,
-                sequence: data.transaction.inputs[0].sequence
-            })
+            try {
+                const data = JSON.parse(body)
+                console.log('dataaaa', data)
+                resolve({
+                    value_int: data.transaction.outputs[0].value_int,
+                    txid: _transactionId,
+                    script_pub_key: data.transaction.outputs[0].script_pub_key.hex,
+                    vout: data.transaction.outputs[0].n,
+                    sequence: data.transaction.inputs[0].sequence
+                })
+            } catch (e) {
+                resolve(undefined)
+            }
+
         })
     })
 }
@@ -221,4 +228,13 @@ function toHex(str) {
         hex += ''+str.charCodeAt(i).toString(16);
     }
     return hex;
+}
+
+
+function pause(milliseconds){
+    return new Promise(resolve => {
+        setTimeout(function(){ 
+            resolve(true)
+        }, 3000)
+    })
 }
