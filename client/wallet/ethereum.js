@@ -25,7 +25,7 @@ const ethereum = {
 
 				const transaction = await wallet.sendTransaction({
 					data: rawTransaction.data,
-					value: ethers.utils.parseEther(_swap.amount2.toString())
+					value: ethers.utils.parseEther(_swap.amount1.toString())
 				})
 		
 				let contractAddress
