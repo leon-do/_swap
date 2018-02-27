@@ -151,12 +151,6 @@ function payUtxoData(_address){
                 for (let j in transactions[i].outputs){
                     // if output has BTC and it belongs to me
                     if (transactions[i].outputs[j].spend_txid !== 'null' && transactions[i].outputs[j].value_int > 0 && transactions[i].outputs[j].addresses[0] === _address) {
-                        // resolve({
-                        //     value_int: 20222,
-                        //     txid: "9718c4b4edcfdd307ca7f663d7d39fe4f46cbd1b1896e3a334bd2563c5cc5bb2",
-                        //     script_pub_key: "76a91438391dfb844190c70ecea35731a50eeb6ab8637388ac",
-                        //     vout: 0
-                        // })
                         resolve({
                             value_int: transactions[i].outputs[j].value_int,
                             txid: transactions[i].txid,

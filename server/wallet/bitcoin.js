@@ -192,7 +192,6 @@ function spendUtxoData (_transactionId) {
             } catch (e) {
                 resolve(undefined)
             }
-
         })
     })
 }
