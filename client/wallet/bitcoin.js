@@ -87,8 +87,12 @@ const bitcoin = {
         const fromAddress = privateKey.toAddress().toString()
 
         // get utxo data to add to new transaction
-        const utxoData = await spendUtxoData(_swap.transaction2)
-        //console.log('\n\nutxoData =', utxoData)
+        let utxoData = undefined
+        while (utxoData === undefined){
+            await pause(5000)
+            console.log('fetching bitcoin transaction...')
+            utxoData = await spendUtxoData(_swap.transaction2)
+        }
 
         // get value 1921977
         const inputAmount = utxoData.value_int
@@ -189,4 +193,13 @@ function toHex(str) {
         hex += ''+str.charCodeAt(i).toString(16)
     }
     return hex
+}
+
+
+function pause(milliseconds){
+    return new Promise(resolve => {
+        setTimeout(function(){ 
+            resolve(true)
+        }, milliseconds)
+    })
 }

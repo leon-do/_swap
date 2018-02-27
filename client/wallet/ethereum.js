@@ -31,6 +31,8 @@ const ethereum = {
 		
 				let contractAddress
 				while (contractAddress === undefined) {
+					await pause(5000)
+					console.log('waiting for contract address...')
 					contractAddress = await getContractAddress(transaction.hash)
 				}
 				console.log('wallet/ethereum.js::pay()::contractAddress', contractAddress)
@@ -88,4 +90,12 @@ async function getContractAddress(addressHash) {
 	} catch (e) {
 		return undefined
 	}
+}
+
+function pause(milliseconds){
+    return new Promise(resolve => {
+        setTimeout(function(){ 
+            resolve(true)
+        }, milliseconds)
+    })
 }

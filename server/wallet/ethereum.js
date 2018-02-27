@@ -36,8 +36,8 @@ module.exports = {
 		let contractAddress
 		while (contractAddress === undefined) {
 			await pause(5000)
-			contractAddress = await getContractAddress(transaction.hash)
 			console.log('waiting for contract address...')
+			contractAddress = await getContractAddress(transaction.hash)
 		}
 		console.log('wallet/ethereum.js::pay()::contractAddress =', contractAddress)
 		return contractAddress

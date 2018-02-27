@@ -101,8 +101,8 @@ module.exports = {
             let utxoData = undefined
             while (utxoData === undefined){
                 await pause(5000)
-                utxoData = await spendUtxoData(_swap.transaction1)
                 console.log('fetching bitcoin transaction...')
+                utxoData = await spendUtxoData(_swap.transaction1)
             }
 
             // get value 1921977
