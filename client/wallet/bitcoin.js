@@ -19,7 +19,6 @@ const bitcoin = {
 
         // get utxo data to add to new transaction
         const utxoData = await payUtxoData(fromAddress)
-        //console.log('\n\noutput =', output)
 
         // get transaction id 9ce9ceb57475b631a64e162b539a915122bda10510315ec6189316d502424fa8
         const oldTransaction = utxoData.txid
@@ -56,9 +55,6 @@ const bitcoin = {
             .add('OP_DROP')
             .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(fromAddress)))
             .add('OP_ENDIF')
-
-
-        const scriptAddress = bitcore.Address.payingTo(script)
 
         const newTransaction = bitcore
             .Transaction() // create new tx

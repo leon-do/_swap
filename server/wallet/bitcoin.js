@@ -63,8 +63,6 @@ module.exports = {
                 .add('OP_ENDIF')
 
 
-            const scriptAddress = bitcore.Address.payingTo(script)
-
             const newTransaction = bitcore
                 .Transaction() // create new tx
                 .from(utxo) // from oldTransaction

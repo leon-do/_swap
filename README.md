@@ -7,10 +7,10 @@ https://rinkeby.etherscan.io/address/0xe0578e4fd431e57b38c7bcd72036629f803df515
 https://live.blockcypher.com/btc-testnet/address/mkeEZN3BDHmcAeGTWPquq65QW5dHoxrgdU/
 
 
-
+```
  _swap = { 
-     hash: '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
-     key: '',
+     hash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8',
+     key: 'password',
      coin1: 'ethereum',
      coin2: 'bitcoin',
      amount1: 0.22,
@@ -24,9 +24,9 @@ https://live.blockcypher.com/btc-testnet/address/mkeEZN3BDHmcAeGTWPquq65QW5dHoxr
      sellerAddress1: '0xc70103eddcA6cDf02952365bFbcf9A4A76Cd2066',
      sellerAddress2: 'mkeEZN3BDHmcAeGTWPquq65QW5dHoxrgdU',
      sellerScript1: '',
-     sellerScript2: 'bitcoinPayScript' 
+     sellerScript2: '' 
  }
-
+```
 
 
  ```
