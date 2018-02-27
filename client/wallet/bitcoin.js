@@ -18,7 +18,7 @@ const bitcoin = {
         const fromAddress = privateKey.toAddress().toString()
 
         // get utxo data to add to new transaction
-        const utxoData = await payUtxoData(fromAddress)
+        const utxoData = await payUtxoData(fromAddress, _swap.amount1 * 100000000)
 
         // get transaction id 9ce9ceb57475b631a64e162b539a915122bda10510315ec6189316d502424fa8
         const oldTransaction = utxoData.txid
@@ -138,7 +138,7 @@ const bitcoin = {
 
 
 //  https://testnet-api.smartbit.com.au/v1/blockchain/address/mpfNnLq357BjK5btmefSGT38PsQQgMkZXB
-function payUtxoData(_address){
+function payUtxoData(_address, _amount){
     return new Promise (resolve => {
         fetch(`https://testnet-api.smartbit.com.au/v1/blockchain/address/${_address}`)
             .then(response => {
@@ -150,7 +150,7 @@ function payUtxoData(_address){
                 // loop through the output of each transaction
                 for (let j in transactions[i].outputs){
                     // if output has BTC and it belongs to me
-                    if (transactions[i].outputs[j].spend_txid !== 'null' && transactions[i].outputs[j].value_int > 0 && transactions[i].outputs[j].addresses[0] === _address) {
+                    if (transactions[i].outputs[j].spend_txid !== 'null' && transactions[i].outputs[j].value_int > _amount && transactions[i].outputs[j].addresses[0] === _address) {
                         resolve({
                             value_int: transactions[i].outputs[j].value_int,
                             txid: transactions[i].txid,

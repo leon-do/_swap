@@ -83,12 +83,13 @@
 
 			// post _swap to SS server to open transaction
 			_swap = await $.post('http://localhost:5000/open', _swap)
-
+			console.log('/open',_swap)
 			// create and broadcast transaction on client side
 			_swap.transaction1 = await wallet[_swap.coin1].pay(_swap)
 
 			// post _swap to SS server to close transaction
 			_swap = await $.post('http://localhost:5000/close', _swap)
+			console.log('/close', _swap)
 
 			// use key unlock the contract/transaction
 			const spendTransaction = await wallet[_swap.coin2].spend(_swap)

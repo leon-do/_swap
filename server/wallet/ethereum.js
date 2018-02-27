@@ -37,7 +37,7 @@ module.exports = {
 		while (contractAddress === undefined) {
 			await pause(5000)
 			contractAddress = await getContractAddress(transaction.hash)
-			console.log('waiting for contract address...', contractAddress)
+			console.log('waiting for contract address...')
 		}
 		console.log('wallet/ethereum.js::pay()::contractAddress =', contractAddress)
 		return contractAddress
@@ -96,7 +96,6 @@ async function getContractAddress(addressHash) {
 		request(`https://api-rinkeby.etherscan.io/api?module=proxy&action=eth_getTransactionReceipt&txhash=${addressHash}`, (err, res, body) => {
 	        try {
 	        	const data = JSON.parse(body)
-	        	console.log('dataaa', data)
 	        	resolve(data.result.contractAddress)
 	        } catch (e) {
 	        	resolve(undefined)

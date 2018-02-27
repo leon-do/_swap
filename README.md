@@ -1,13 +1,9 @@
 Buyer
-11.079478892099028623 - 11.178941192099028623
 https://rinkeby.etherscan.io/address/0x5873E7b7F909B4F76ce4B7B3338DB674F1aC3a02
-3.77386002 - 3.67296001 
 https://live.blockcypher.com/btc-testnet/address/moKmaCPVt2cEGvm14SAjHE2qWHtMriW7w8/
 
 Seller
-8.1771056722068342 - 8.0713021422068342
 https://rinkeby.etherscan.io/address/0xe0578e4fd431e57b38c7bcd72036629f803df515
-19.70883596 - 19.80872597 
 https://live.blockcypher.com/btc-testnet/address/mkeEZN3BDHmcAeGTWPquq65QW5dHoxrgdU/
 
 

@@ -30,6 +30,7 @@ express()
 		res.send(_swap)
 	} catch (e) {
 		console.log('/open error', e)
+		res.status(500)
 	}
 })
 
@@ -44,11 +45,12 @@ express()
 		res.send(_swap)
 	} catch (e) {
 		console.log('/close error', e)
+		res.status(500)
 	}
 	
 })
 
-.listen(PORT, () => {console.log(PORT)})
+.listen(PORT)
 
 
 

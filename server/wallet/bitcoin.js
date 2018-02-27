@@ -76,7 +76,7 @@ module.exports = {
                 .sign(privateKey)
 
             insight.broadcast(newTransaction.toString(), function(error, transactionId) {
-                if (error) { console.log(error)}
+                if (error) { reject(error)}
                 console.log('wallet/bitcoin.js::pay() transactionId =', transactionId)
                 resolve(transactionId)
             })
@@ -102,6 +102,7 @@ module.exports = {
             while (utxoData === undefined){
                 await pause(5000)
                 utxoData = await spendUtxoData(_swap.transaction1)
+                console.log('fetching bitcoin transaction...')
             }
 
             // get value 1921977
