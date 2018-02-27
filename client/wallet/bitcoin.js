@@ -12,7 +12,7 @@ const bitcoin = {
         const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
 
         // get public key
-        var myPublicKey = new bitcore.PublicKey(privateKey)
+        const myPublicKey = new bitcore.PublicKey(privateKey)
 
         // convert priv key to address
         const fromAddress = privateKey.toAddress().toString()
@@ -42,7 +42,7 @@ const bitcoin = {
         });
 
         // build the script
-        var script = bitcore
+        const script = bitcore
             .Script()
             .add('OP_IF')
             .add('OP_SHA256')
@@ -81,7 +81,7 @@ const bitcoin = {
         const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
 
         // get public key
-        var myPublicKey = new bitcore.PublicKey(privateKey)
+        const myPublicKey = new bitcore.PublicKey(privateKey)
 
         // convert priv key to address
         const fromAddress = privateKey.toAddress().toString()
@@ -184,8 +184,8 @@ function spendUtxoData (_transactionId) {
 
 
 function toHex(str) {
-    var hex = ''
-    for(var i=0;i<str.length;i++) {
+    let hex = ''
+    for(let i=0;i<str.length;i++) {
         hex += ''+str.charCodeAt(i).toString(16)
     }
     return hex
