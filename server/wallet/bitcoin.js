@@ -10,18 +10,17 @@ module.exports = {
     },
 
     pay: (_swap) => {
+        console.log('wallet/bitcoin.js::pay()')
+
         return new Promise(async (resolve, reject) => {
             // convert wif to a private key
             const privateKey = bitcore.PrivateKey.fromWIF(private_key.bitcoin)
-            console.log('\n\nprivateKey =', privateKey)
 
             // get public key
             var myPublicKey = new bitcore.PublicKey(privateKey)
-            console.log('\n\nmyPublicKey =', myPublicKey)
 
             // convert priv key to address
             const fromAddress = privateKey.toAddress().toString()
-            console.log('\n\nfromAddress =', privateKey.toAddress().toString())
 
             // get utxo data to add to new transaction
             const utxoData = await payUtxoData(fromAddress)
@@ -29,19 +28,15 @@ module.exports = {
 
             // get transaction id 9ce9ceb57475b631a64e162b539a915122bda10510315ec6189316d502424fa8
             const oldTransaction = utxoData.txid
-            console.log('\n\noldTransaction =', oldTransaction)
 
             // get value 1921977
             const inputAmount = utxoData.value_int
-            console.log('\n\ninputAmount =', inputAmount)
 
             // https://chainquery.com/bitcoin-api/decodescript
             const scriptPubKey = utxoData.script_pub_key
-            console.log('\n\nscriptPubKey =', scriptPubKey)
 
             // 1
             const vout = utxoData.vout
-            console.log('\n\nvout =', vout)
 
             // create unsigned transaction out
             const utxo = new bitcore.Transaction.UnspentOutput({
@@ -51,7 +46,6 @@ module.exports = {
                 "scriptPubKey" : scriptPubKey,
                 "satoshis" : inputAmount
             });
-            console.log('\n\nutxo =', utxo)
 
             // build the script
             var script = bitcore
@@ -67,11 +61,9 @@ module.exports = {
                 .add('OP_DROP')
                 .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(fromAddress)))
                 .add('OP_ENDIF')
-            console.log('script.toString() =', script.toString())
 
 
             const scriptAddress = bitcore.Address.payingTo(script)
-            console.log('\n\nscriptAddress =', scriptAddress)
 
             const newTransaction = bitcore
                 .Transaction() // create new tx
@@ -85,14 +77,9 @@ module.exports = {
                 .change(fromAddress)
                 .sign(privateKey)
 
-            console.log('\n\nnewTransaction =', require('util').inspect(newTransaction.toObject(), false, null) )
-
-            // https://live.blockcypher.com/btc-testnet/decodetx/
-            console.log('\n\nSerialized Transaction =\n', newTransaction.toString())
 
             insight.broadcast(newTransaction.toString(), function(error, transactionId) {
-                console.log('error', error)
-                console.log('transactionId', transactionId)
+                console.log('wallet/bitcoin.js()::transactionId =', transactionId)
                 resolve(transactionId.txid)
             })
 
@@ -100,18 +87,17 @@ module.exports = {
     },
 
     spend:  (_swap) => {
+        console.log('wallet/bitcoin.js::spend()')
+
         return new Promise (async (resolve, reject) => {
             // convert wif to a private key
             const privateKey = bitcore.PrivateKey.fromWIF(private_key.bitcoin)
-            console.log('spend():privateKey', privateKey)
 
             // get public key
             var myPublicKey = new bitcore.PublicKey(privateKey)
-            console.log('spend():myPublicKey', myPublicKey)
 
             // convert priv key to address
             const fromAddress = privateKey.toAddress().toString()
-            console.log(fromAddress)
 
             // get utxo data to add to new transaction
             let utxoData = undefined
@@ -119,20 +105,15 @@ module.exports = {
                 await pause(5000)
                 utxoData = await spendUtxoData(_swap.transaction1)
             }
-            console.log('spend():utxoData =', utxoData)
 
             // get value 1921977
             const inputAmount = utxoData.value_int
-            console.log('spend():inputAmount', inputAmount)
 
             const scriptPubKey = utxoData.script_pub_key
-            console.log('spend():scriptPubKey', scriptPubKey)
 
             const sequenceNumber = utxoData.sequence
-            console.log('spend():sequenceNumber', sequenceNumber)
 
             const vout = utxoData.vout
-            console.log('spend():vout', vout)
 
             // https://bitcore.io/api/lib/unspent-output
             const refundTransaction = new bitcore.Transaction().from({
@@ -143,12 +124,10 @@ module.exports = {
             })
                 .to(fromAddress, inputAmount - 1000) // or Copay: mqsscUaTAy3pjwgg7LVnQWr2dFCKphctM2
                 .lockUntilDate(Math.floor(Date.now() / 1001)); // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
-            console.log('spend():refundTransaction', refundTransaction)
 
             refundTransaction.inputs[0].sequenceNumber = 0; // the CLTV opcode requires that the input's sequence number not be finalized
 
             const signature = bitcore.Transaction.sighash.sign(refundTransaction, privateKey, bitcore.crypto.Signature.SIGHASH_ALL, 0, scriptPubKey);
-            console.log('signature', signature)
 
             // setup the scriptSig of the spending transaction to spend the p2sh-cltv-p2pkh redeem script
             refundTransaction.inputs[0].setScript(
@@ -158,11 +137,10 @@ module.exports = {
                     .add(new Buffer(toHex(_swap.key).toString(), 'hex'))
                     .add('OP_TRUE') // choose the time-delayed refund code path
             )
-            console.log('refundTransaction', refundTransaction.toString())
 
             // broadcast transaction
             insight.broadcast(refundTransaction.toString(), function(error, transactionId) {
-                console.log('transactionId', transactionId)
+                console.log('wallet/bitcoin.js::spend()::transactionId.txid', transactionId.txid)
                 resolve(transactionId.txid)
             });
         })
@@ -174,7 +152,6 @@ module.exports = {
 }
 
 
-//  https://testnet-api.smartbit.com.au/v1/blockchain/address/mpfNnLq357BjK5btmefSGT38PsQQgMkZXB
 //  https://testnet-api.smartbit.com.au/v1/blockchain/address/mpfNnLq357BjK5btmefSGT38PsQQgMkZXB
 function payUtxoData (_address) {
     return new Promise(resolve => {
@@ -223,11 +200,11 @@ function spendUtxoData (_transactionId) {
 }
 
 function toHex(str) {
-    var hex = '';
+    var hex = ''
     for(var i=0;i<str.length;i++) {
-        hex += ''+str.charCodeAt(i).toString(16);
+        hex += ''+str.charCodeAt(i).toString(16)
     }
-    return hex;
+    return hex
 }
 
 
@@ -235,6 +212,6 @@ function pause(milliseconds){
     return new Promise(resolve => {
         setTimeout(function(){ 
             resolve(true)
-        }, 3000)
+        }, milliseconds)
     })
 }

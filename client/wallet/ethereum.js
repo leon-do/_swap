@@ -4,6 +4,7 @@ const ethereum = {
 	},
 
 	pay: (_swap) => {
+		console.log('wallet/ethereum.js::pay()')
 
 		return new Promise((resolve, reject) => {
 			const privateKey = '0x505bdbc30b8f84d06dbfb4c780a5504c87a2a13731f11c41c0f9b4247b719985'
@@ -32,12 +33,15 @@ const ethereum = {
 				while (contractAddress === undefined) {
 					contractAddress = await getContractAddress(transaction.hash)
 				}
+				console.log('wallet/ethereum.js::pay()::contractAddress', contractAddress)
 				resolve(contractAddress)
 			})
 		})
 	},
 
 	spend: (_swap) => {
+		console.log('wallet/ethereum.js::spend()')
+
 		return new Promise((resolve, reject) => {
 			const privateKey = '0x505bdbc30b8f84d06dbfb4c780a5504c87a2a13731f11c41c0f9b4247b719985'
 	  		const provider = ethers.providers.getDefaultProvider('rinkeby');
@@ -66,8 +70,8 @@ const ethereum = {
 				})
 		
 				// get the contract address from transaction hash
-				console.log('transaction.hash', transaction)
-				resolve(transaction.hash)
+				console.log('wallet/ethereum.js::spend()::transaction.hash', transaction.hash)
+				resolve()transaction.hash
 			})
 		})
 	},

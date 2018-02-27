@@ -15,25 +15,28 @@
 
 	<input id='amount1' onkeyup='displayAmount2()' type='number' value="0.0111">
 
-	<select>
-		<option id='coin1' value='bitcoin'>bitcoin</option>
+	<select id='coin1'>
+		<!-- NOTE: the values must match the keys to const wallet -->
+		<option value='ethereum'>ethereum</option>
+		<option value='bitcoin'>bitcoin</option>
 	</select>
 
 	----->
 
-	<input id='amount2' disabled type='number' value='0.0222'>
+	<input id='amount2' disabled type='number' value='0.0111'>
 
-	<select>
+	<select id='coin2'>
+		<!-- NOTE: the values must match the keys to const wallet -->
+		<option id='coin2' value='bitcoin'>bitcoin</option>
 		<option id='coin2' value='ethereum'>ethereum</option>
 	</select>
 
 	<br><br><br>
 
-	<button onclick='startTransaction()'> start transaction </button>
+	<button onclick='swap()'> swap </button>
 
 </body>
 </html>
-
 
 <script>
 
@@ -46,15 +49,13 @@
 
 	// display _script.amount2 dynamically
 	function displayAmount2() {
-		// example: 1 ethereum for 0.5 bitcoin
-		const ratio = 2
+		// example: 1 ethereum for 1 bitcoin
+		const ratio = 1
 		document.getElementById('amount2').value = document.getElementById('amount1').value * ratio
 	}
 
-	async function startTransaction() {
+	async function swap() {
 		try {
-
-
 			// _swap will contain all of the data needed to swap
 			let _swap = {
 				hash: null,
@@ -72,29 +73,27 @@
 			}
 
 			// get values from DOM
-			_swap.coin1 = document.getElementById('coin1').value
-			_swap.coin2 = document.getElementById('coin2').value
+			_swap.coin1 = $('#coin1 option:selected').text()
+			_swap.coin2 = $('#coin2 option:selected').text()
 			_swap.amount1 = document.getElementById('amount1').value
-			_swap.amount2 = document.getElementById('amount2').value
+			_swap.amount2 = document.getElementById('amount1').value
+
+			// get buyer addresses
 			_swap.buyerAddress1 = await wallet[_swap.coin1].address(_swap)
 			_swap.buyerAddress2 = await wallet[_swap.coin2].address(_swap)
 
-			console.log('open', _swap)
-			// send _swap data to SS server to open transaction
+			// post _swap data to SS server to open transaction
 			_swap = await $.post('http://localhost:5000/open', _swap)
 
-			console.log('response', _swap)
 			// create and broadcast transaction on client side
 			_swap.transaction1 = await wallet[_swap.coin1].pay(_swap)
 
-			console.log('close', _swap)
-			// send _swap data to SS server to close transaction
+			// post _swap data to SS server to close transaction
 			_swap = await $.post('http://localhost:5000/close', _swap)
 
-			console.log('complete', _swap)
+			// use key unlock the contract/transaction
 			const spendTransaction = await wallet[_swap.coin2].spend(_swap)
-			console.log('spenTransaction', spendTransaction)
-		
+			console.log('spendTransaction', spendTransaction)
 
 		} catch (e) {
 			console.log('error', e)

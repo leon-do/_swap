@@ -9,6 +9,7 @@ module.exports = {
     },
 
 	pay: async (_swap) => {
+		console.log('wallet/ethereum.js::pay()')
         const seconds = 60
 
 		const provider = ethers.providers.getDefaultProvider('rinkeby');
@@ -36,19 +37,20 @@ module.exports = {
 		while (contractAddress === undefined) {
 			await pause(5000)
 			contractAddress = await getContractAddress(transaction.hash)
-			console.log('waiting for contract address...', contractAddress, transaction.hash)
+			console.log('waiting for contract address...', contractAddress)
 		}
+		console.log('wallet/ethereum.js::pay()::contractAddress =', contractAddress)
 		return contractAddress
 	},
 
 	spend: async (_swap) => {
+		console.log('wallet/ethereum.js::spend()')
+
 		// https://docs.ethers.io/ethers.js/html/api-contract.html#examples
         const seconds = 60
 
 		const provider = ethers.providers.getDefaultProvider('rinkeby')
-		console.log('\n\nprovider', provider)
 		const wallet = new ethers.Wallet(private_key.ethereum, provider)		
-		console.log('\n\nwallet', wallet)
 		const input = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${seconds} seconds; address public toAddress = ${_swap.buyerAddress1}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
 		const output = solc.compile(input, 1)
 
@@ -58,13 +60,14 @@ module.exports = {
 		}
 
 		const contract = new ethers.Contract(_swap.transaction1, abi, wallet)
-		console.log('\n\ncontract', contract)
 		const sendPromise = await contract.checkKey(_swap.key)
-		console.log('sendPromise', sendPromise)
+		console.log('wallet/ethereum.js::spend() sendPromise.hash', sendPromise.hash)
 		return sendPromise.hash
 	},
 
 	redeem: async () => {
+		console.log('wallet/ethereum.js::redeem()')
+
 		// https://docs.ethers.io/ethers.js/html/api-contract.html#examples
         const seconds = 60
 
@@ -83,6 +86,7 @@ module.exports = {
 
 		const sendPromise = await contract.withdraw();
 
+		console.log('wallet/ethereum.js::redeem()::sendPromise.hash', sendPromise.hash)
 		return sendPromise.hash
 	}
 }
@@ -106,6 +110,6 @@ function pause(milliseconds){
 	return new Promise(resolve => {
 		setTimeout(function(){ 
 			resolve(true)
-		}, 3000)
+		}, milliseconds)
 	})
 }

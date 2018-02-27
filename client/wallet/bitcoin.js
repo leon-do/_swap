@@ -1,21 +1,21 @@
 const bitcoin = {
     address: (_swap) => {
+        console.log('bitcoin.js:address()')
         const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
         return privateKey.toAddress().toString()
     },
 
     pay: async (_swap) => {
+        console.log('wallet/bitcoin.js::pay()')
+
         // from privateKey.js
         const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
-        console.log('\n\nprivateKey =', privateKey)
 
         // get public key
         var myPublicKey = new bitcore.PublicKey(privateKey)
-        console.log('\n\nmyPublicKey =', myPublicKey)
 
         // convert priv key to address
         const fromAddress = privateKey.toAddress().toString()
-        console.log('\n\nfromAddress =', privateKey.toAddress().toString())
 
         // get utxo data to add to new transaction
         const utxoData = await payUtxoData(fromAddress)
@@ -23,19 +23,15 @@ const bitcoin = {
 
         // get transaction id 9ce9ceb57475b631a64e162b539a915122bda10510315ec6189316d502424fa8
         const oldTransaction = utxoData.txid
-        console.log('\n\noldTransaction =', oldTransaction)
 
         // get value 1921977
         const inputAmount = utxoData.value_int
-        console.log('\n\ninputAmount =', inputAmount)
 
         // https://chainquery.com/bitcoin-api/decodescript
         const scriptPubKey = utxoData.script_pub_key
-        console.log('\n\nscriptPubKey =', scriptPubKey)
 
         // 1
         const vout = utxoData.vout
-        console.log('\n\nvout =', vout)
 
         // create unsigned transaction out
         const utxo = new bitcore.Transaction.UnspentOutput({
@@ -45,7 +41,6 @@ const bitcoin = {
             "scriptPubKey" : scriptPubKey,
             "satoshis" : inputAmount
         });
-        console.log('\n\nutxo =', utxo)
 
         // build the script
         var script = bitcore
@@ -61,11 +56,9 @@ const bitcoin = {
             .add('OP_DROP')
             .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(fromAddress)))
             .add('OP_ENDIF')
-        console.log('script.toString() =', script.toString())
 
 
         const scriptAddress = bitcore.Address.payingTo(script)
-        console.log('\n\nscriptAddress =', scriptAddress)
 
         const newTransaction = bitcore
             .Transaction() // create new tx
@@ -80,25 +73,22 @@ const bitcoin = {
             .sign(privateKey)
 
         // https://live.blockcypher.com/btc-testnet/decodetx/
-        console.log('\n\nSerialized Transaction =\n', newTransaction.toString())
-
-        // @TODO broadcast transaction
         const data = await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: newTransaction.toString()})
+        console.log('wallet/bitcoin.js::pay()::data.txid =', data.txid)
         return data.txid
     },
 
     spend: async (_swap) => {
+        console.log('wallet/bitcoin.js::spend()')
+
         // convert wif to a private key
         const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
-        console.log('\n\nprivateKey =', privateKey)
 
         // get public key
         var myPublicKey = new bitcore.PublicKey(privateKey)
-        console.log('\n\nmyPublicKey =', myPublicKey)
 
         // convert priv key to address
         const fromAddress = privateKey.toAddress().toString()
-        console.log('\n\nfromAddress =', privateKey.toAddress().toString())
 
         // get utxo data to add to new transaction
         const utxoData = await spendUtxoData(_swap.transaction2)
@@ -106,17 +96,13 @@ const bitcoin = {
 
         // get value 1921977
         const inputAmount = utxoData.value_int
-        console.log('\n\ninputAmount =', inputAmount)
 
         const scriptPubKey = utxoData.script_pub_key
-        console.log('\n\nscriptPubKey =', scriptPubKey)
 
         const sequenceNumber = utxoData.sequence
-        console.log('\n\nsequenceNumber =', sequenceNumber)
 
         // 1
         const vout = utxoData.vout
-        console.log('\n\nvout =', vout)
 
         // https://bitcore.io/api/lib/unspent-output
         const refundTransaction = new bitcore.Transaction().from({
@@ -142,9 +128,9 @@ const bitcoin = {
                 .add('OP_TRUE') // choose the time-delayed refund code path
         )
 
-        console.log('\n\n\ntransaction =', refundTransaction.toString())
 
         const data = await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: refundTransaction.toString()})
+        console.log('wallet/bitcoin.js::spend()::data.txid =', data.txid)
         return data.txid
     },
 
@@ -208,9 +194,9 @@ function spendUtxoData (_transactionId) {
 
 
 function toHex(str) {
-    var hex = '';
+    var hex = ''
     for(var i=0;i<str.length;i++) {
-        hex += ''+str.charCodeAt(i).toString(16);
+        hex += ''+str.charCodeAt(i).toString(16)
     }
-    return hex;
+    return hex
 }
