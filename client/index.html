@@ -82,18 +82,20 @@
 			_swap.buyerAddress2 = await wallet[_swap.coin2].address(_swap)
 
 			// post _swap to SS server to open transaction
+			console.log('step 1', _swap)
 			_swap = await $.post('http://localhost:5000/open', _swap)
-			console.log('/open',_swap)
+			
 			// create and broadcast transaction on client side
+			console.log('step 4', _swap)
 			_swap.transaction1 = await wallet[_swap.coin1].pay(_swap)
 
 			// post _swap to SS server to close transaction
+			console.log('step 5', _swap)
 			_swap = await $.post('http://localhost:5000/close', _swap)
-			console.log('/close', _swap)
 
 			// use key unlock the contract/transaction
+			console.log('step 8', _swap)
 			const spendTransaction = await wallet[_swap.coin2].spend(_swap)
-			console.log('spendTransaction', spendTransaction)
 
 		} catch (e) {
 			console.log('error', e)

@@ -35,7 +35,7 @@ const ethereum = {
 					console.log('waiting for contract address...')
 					contractAddress = await getContractAddress(transaction.hash)
 				}
-				console.log('wallet/ethereum.js::pay()::contractAddress', contractAddress)
+				console.log('wallet/ethereum.js::pay()::contractAddress =', contractAddress)
 				resolve(contractAddress)
 			})
 		})
@@ -72,7 +72,7 @@ const ethereum = {
 				})
 		
 				// get the contract address from transaction hash
-				console.log('wallet/ethereum.js::spend()::transaction.hash', transaction.hash)
+				console.log('wallet/ethereum.js::spend()::transaction.hash =', transaction.hash)
 				resolve(transaction.hash)
 			})
 		})

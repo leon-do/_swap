@@ -12,7 +12,7 @@ module.exports = {
 		console.log('wallet/ethereum.js::pay()')
         const seconds = 60
 
-		const provider = ethers.providers.getDefaultProvider('rinkeby');
+		const provider = ethers.providers.getDefaultProvider('rinkeby')
 		const wallet = new ethers.Wallet(private_key.ethereum, provider)	
 
 		const input = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${seconds} seconds; address public toAddress = ${_swap.buyerAddress2}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
@@ -61,7 +61,7 @@ module.exports = {
 
 		const contract = new ethers.Contract(_swap.transaction1, abi, wallet)
 		const sendPromise = await contract.checkKey(_swap.key)
-		console.log('wallet/ethereum.js::spend() sendPromise.hash', sendPromise.hash)
+		console.log('wallet/ethereum.js::spend() sendPromise.hash =', sendPromise.hash)
 		return sendPromise.hash
 	},
 
@@ -71,7 +71,7 @@ module.exports = {
 		// https://docs.ethers.io/ethers.js/html/api-contract.html#examples
         const seconds = 60
 
-        const provider = ethers.providers.getDefaultProvider('rinkeby');
+        const provider = ethers.providers.getDefaultProvider('rinkeby')
 		const wallet = new ethers.Wallet(private_key.ethereum, provider)	
 
 		const input = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${seconds} seconds; address public toAddress = ${_swap.buyerAddress2}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
@@ -84,9 +84,9 @@ module.exports = {
 
 		const contract = new ethers.Contract(_swap.transaction1, abi, wallet);
 
-		const sendPromise = await contract.withdraw();
+		const sendPromise = await contract.withdraw()
 
-		console.log('wallet/ethereum.js::redeem()::sendPromise.hash', sendPromise.hash)
+		console.log('wallet/ethereum.js::redeem()::sendPromise.hash =', sendPromise.hash)
 		return sendPromise.hash
 	}
 }

@@ -21,12 +21,12 @@ express()
 	res.header('Access-Control-Allow-Origin', '*')
 	try {
 		const _swap = req.body
-		console.log('open _swap =', _swap)
+		console.log('step 2', _swap)
 		_swap.hash = await lock.hash(_swap)
 		_swap.sellerAddress1 = await wallet[_swap.coin1].address(_swap)
 		_swap.sellerAddress2 = await wallet[_swap.coin2].address(_swap)
 		_swap.transaction2 = await wallet[_swap.coin2].pay(_swap)
-		console.log('server send _swap =', _swap)
+		console.log('step 3', _swap)
 		res.send(_swap)
 	} catch (e) {
 		console.log('/open error', e)
@@ -38,10 +38,10 @@ express()
 	res.header('Access-Control-Allow-Origin', '*')
 	try {
 		const _swap = req.body
-		console.log('close _swap =', _swap)
+		console.log('step 6 =', _swap)
 		_swap.key = await lock.key(_swap)
 		await wallet[_swap.coin1].spend(_swap)
-		console.log('server send _swap =', _swap)
+		console.log('step 7', _swap)
 		res.send(_swap)
 	} catch (e) {
 		console.log('/close error', e)

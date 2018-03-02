@@ -122,9 +122,9 @@ module.exports = {
                 satoshis: inputAmount,
             })
                 .to(fromAddress, inputAmount - 1000) // or Copay: mqsscUaTAy3pjwgg7LVnQWr2dFCKphctM2
-                .lockUntilDate(Math.floor(Date.now() / 1001)); // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
+                .lockUntilDate(Math.floor(Date.now() / 1001)) // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
 
-            refundTransaction.inputs[0].sequenceNumber = 0; // the CLTV opcode requires that the input's sequence number not be finalized
+            refundTransaction.inputs[0].sequenceNumber = 0 // the CLTV opcode requires that the input's sequence number not be finalized
 
             const signature = bitcore.Transaction.sighash.sign(refundTransaction, privateKey, bitcore.crypto.Signature.SIGHASH_ALL, 0, scriptPubKey);
 
