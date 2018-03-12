@@ -8,14 +8,17 @@ module.exports = {
         return '0xe0578E4fd431e57B38C7bCD72036629f803df515'
     },
 
+    timeLock: (_swap) => {
+        return 60
+    },
+
 	pay: async (_swap) => {
 		console.log('wallet/ethereum.js::pay()')
-        const seconds = 60
 
 		const provider = ethers.providers.getDefaultProvider('rinkeby')
 		const wallet = new ethers.Wallet(private_key.ethereum, provider)	
 
-		const input = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${seconds} seconds; address public toAddress = ${_swap.buyerAddress2}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
+		const input = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${_swap.timeLock2} seconds; address public toAddress = ${_swap.buyerAddress2}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
 		const output = solc.compile(input, 1)
 
 		let bytecode

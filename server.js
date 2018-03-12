@@ -23,6 +23,7 @@ express()
 		const _swap = req.body
 		console.log('step 2', _swap)
 		_swap.hash = await lock.hash(_swap)
+		_swap.timeLock2 = await wallet[_swap.coin2].timeLock(_swap)
 		_swap.sellerAddress1 = await wallet[_swap.coin1].address(_swap)
 		_swap.sellerAddress2 = await wallet[_swap.coin2].address(_swap)
 		_swap.transaction2 = await wallet[_swap.coin2].pay(_swap)

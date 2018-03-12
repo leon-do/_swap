@@ -9,6 +9,10 @@ module.exports = {
         return bitcore.PrivateKey.fromWIF(private_key.bitcoin).toAddress().toString()
     },
 
+    timeLock: (_swap) => {
+        return Math.floor(Date.now()/1000)
+    },
+
     pay: (_swap) => {
         console.log('wallet/bitcoin.js::pay()')
 
@@ -56,7 +60,7 @@ module.exports = {
                 .add('OP_EQUALVERIFY')
                 .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.buyerAddress2)))
                 .add('OP_ELSE')
-                .add(bitcore.crypto.BN.fromNumber(1513412288).toScriptNumBuffer())
+                .add(bitcore.crypto.BN.fromNumber(_swap.timeLock2).toScriptNumBuffer())
                 .add('OP_CHECKLOCKTIMEVERIFY')
                 .add('OP_DROP')
                 .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(fromAddress)))
