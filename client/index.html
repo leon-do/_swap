@@ -65,8 +65,6 @@
 				amount2: null,
 				transaction1: null,
 				transaction2: null,
-				timeLock1: null,
-				timeLock2: null,
 				buyerAddress1: null,
 				buyerAddress2: null,
 				sellerAddress1: null,
@@ -89,7 +87,6 @@
 			
 			// create and broadcast transaction on client side
 			console.log('step 4', _swap)
-			_swap.timeLock1 = await wallet[_swap.coin1].timeLock(_swap)
 			_swap.transaction1 = await wallet[_swap.coin1].pay(_swap)
 
 			// post _swap to SS server to close transaction

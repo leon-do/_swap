@@ -5,10 +5,6 @@ const bitcoin = {
         return privateKey.toAddress().toString()
     },
 
-    timeLock: (_swap) => {
-        return Math.floor(Date.now()/1000)
-    },
-
     pay: async (_swap) => {
         console.log('wallet/bitcoin.js::pay()')
 
@@ -54,7 +50,7 @@ const bitcoin = {
             .add('OP_EQUALVERIFY')
             .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.sellerAddress1)))
             .add('OP_ELSE')
-            .add(bitcore.crypto.BN.fromNumber(_swap.timeLock1).toScriptNumBuffer())
+            .add(bitcore.crypto.BN.fromNumber(1513412288).toScriptNumBuffer())
             .add('OP_CHECKLOCKTIMEVERIFY')
             .add('OP_DROP')
             .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(fromAddress)))
