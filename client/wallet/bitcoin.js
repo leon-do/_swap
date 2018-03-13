@@ -104,11 +104,25 @@ const bitcoin = {
         // 1
         const vout = utxoData.vout
 
-        // https://bitcore.io/api/lib/unspent-output
+        // build the script
+        const redeemScript = bitcore
+            .Script()
+            .add('OP_IF')
+            .add('OP_SHA256')
+            .add(new Buffer(_swap.hash, 'hex'))
+            .add('OP_EQUALVERIFY')
+            .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.buyerAddress2)))
+            .add('OP_ELSE')
+            .add(bitcore.crypto.BN.fromNumber(Number(_swap.timeLock2)).toScriptNumBuffer())
+            .add('OP_CHECKLOCKTIMEVERIFY')
+            .add('OP_DROP')
+            .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.sellerAddress2)))
+            .add('OP_ENDIF')
+
         const refundTransaction = new bitcore.Transaction().from({
             txid: _swap.transaction2,
             vout: vout,
-            scriptPubKey: new bitcore.Script(scriptPubKey).toHex(), //  https://github.com/bitpay/bitcore-lib/blob/master/docs/examples.md
+            scriptPubKey: redeemScript.toScriptHashOut(),
             satoshis: inputAmount,
         })
             .to(fromAddress, inputAmount - 1000) // or Copay: mqsscUaTAy3pjwgg7LVnQWr2dFCKphctM2
@@ -117,7 +131,7 @@ const bitcoin = {
 
         refundTransaction.inputs[0].sequenceNumber = 0; // the CLTV opcode requires that the input's sequence number not be finalized
 
-        const signature = bitcore.Transaction.sighash.sign(refundTransaction, privateKey, bitcore.crypto.Signature.SIGHASH_ALL, 0, scriptPubKey);
+        const signature = bitcore.Transaction.sighash.sign(refundTransaction, privateKey, bitcore.crypto.Signature.SIGHASH_ALL, 0, redeemScript);
 
         // setup the scriptSig of the spending transaction to spend the p2sh-cltv-p2pkh redeem script
         refundTransaction.inputs[0].setScript(
@@ -126,8 +140,10 @@ const bitcoin = {
                 .add(new Buffer(myPublicKey.toString(), 'hex'))
                 .add(new Buffer(toHex(_swap.key).toString(), 'hex'))
                 .add('OP_TRUE') // choose the time-delayed refund code path
+                .add(redeemScript.toBuffer())
         )
 
+        console.log('refundTransaction', refundTransaction)
 
         const data = await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: refundTransaction.toString()})
         console.log('wallet/bitcoin.js::spend()::data.txid =', data.txid)

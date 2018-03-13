@@ -66,16 +66,12 @@ module.exports = {
                 .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(fromAddress)))
                 .add('OP_ENDIF')
 
+            const scriptAddress = bitcore.Address.payingTo(script)
 
             const newTransaction = bitcore
                 .Transaction() // create new tx
                 .from(utxo) // from oldTransaction
-                .addOutput(
-                    new bitcore.Transaction.Output({
-                        script: script,
-                        satoshis: _swap.amount2 * 100000000 - 9999,
-                    })
-                )
+                .to(scriptAddress, _swap.amount2 * 100000000)
                 .change(fromAddress)
                 .sign(privateKey)
 
