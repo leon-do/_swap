@@ -86,67 +86,11 @@ module.exports = {
 
     spend:  (_swap) => {
         console.log('wallet/bitcoin.js::spend()')
-
-        return new Promise (async (resolve, reject) => {
-            // convert wif to a private key
-            const privateKey = bitcore.PrivateKey.fromWIF(private_key.bitcoin)
-
-            // get public key
-            const myPublicKey = new bitcore.PublicKey(privateKey)
-
-            // convert priv key to address
-            const fromAddress = privateKey.toAddress().toString()
-
-            // get utxo data to add to new transaction
-            let utxoData = undefined
-            while (utxoData === undefined){
-                await pause(5000)
-                console.log('fetching bitcoin transaction...')
-                utxoData = await spendUtxoData(_swap.transaction1)
-            }
-
-            // get value 1921977
-            const inputAmount = utxoData.value_int
-
-            const scriptPubKey = utxoData.script_pub_key
-
-            const sequenceNumber = utxoData.sequence
-
-            const vout = utxoData.vout
-
-            // https://bitcore.io/api/lib/unspent-output
-            const refundTransaction = new bitcore.Transaction().from({
-                txid: _swap.transaction1,
-                vout: vout,
-                scriptPubKey: new bitcore.Script(scriptPubKey).toHex(), //  https://github.com/bitpay/bitcore-lib/blob/master/docs/examples.md
-                satoshis: inputAmount,
-            })
-                .to(fromAddress, inputAmount - 1000) // or Copay: mqsscUaTAy3pjwgg7LVnQWr2dFCKphctM2
-                .lockUntilDate(Math.floor(Date.now() / 1001)) // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
-
-            refundTransaction.inputs[0].sequenceNumber = 0 // the CLTV opcode requires that the input's sequence number not be finalized
-
-            const signature = bitcore.Transaction.sighash.sign(refundTransaction, privateKey, bitcore.crypto.Signature.SIGHASH_ALL, 0, scriptPubKey);
-
-            // setup the scriptSig of the spending transaction to spend the p2sh-cltv-p2pkh redeem script
-            refundTransaction.inputs[0].setScript(
-                bitcore.Script.empty()
-                    .add(signature.toTxFormat())
-                    .add(new Buffer(myPublicKey.toString(), 'hex'))
-                    .add(new Buffer(toHex(_swap.key).toString(), 'hex'))
-                    .add('OP_TRUE') // choose the time-delayed refund code path
-            )
-
-            // broadcast transaction
-            insight.broadcast(refundTransaction.toString(), function(error, transactionId) {
-                if (error) { console.log(error)}
-                resolve(transactionId)
-            });
-        })
+        return 'bitcoinSpendTransaction'
     },
 
     redeem: async (_swap) => {
-        return 'bitcoinRedeemScript'
+        return 'bitcoinRedeemTransaction'
     }
 }
 

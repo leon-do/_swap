@@ -6,72 +6,7 @@ const bitcoin = {
     },
 
     pay: async (_swap) => {
-        console.log('wallet/bitcoin.js::pay()')
 
-        // from privateKey.js
-        const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
-
-        // get public key
-        const myPublicKey = new bitcore.PublicKey(privateKey)
-
-        // convert priv key to address
-        const fromAddress = privateKey.toAddress().toString()
-
-        // get utxo data to add to new transaction
-        const utxoData = await payUtxoData(fromAddress, _swap.amount1 * 100000000)
-
-        // get transaction id 9ce9ceb57475b631a64e162b539a915122bda10510315ec6189316d502424fa8
-        const oldTransaction = utxoData.txid
-
-        // get value 1921977
-        const inputAmount = utxoData.value_int
-
-        // https://chainquery.com/bitcoin-api/decodescript
-        const scriptPubKey = utxoData.script_pub_key
-
-        // 1
-        const vout = utxoData.vout
-
-        // create unsigned transaction out
-        const utxo = new bitcore.Transaction.UnspentOutput({
-            "txid" : oldTransaction,
-            "vout" : vout,
-            "address" : fromAddress,
-            "scriptPubKey" : scriptPubKey,
-            "satoshis" : inputAmount
-        });
-
-        // build the script
-        const script = bitcore
-            .Script()
-            .add('OP_IF')
-            .add('OP_SHA256')
-            .add(new Buffer(_swap.hash, 'hex'))
-            .add('OP_EQUALVERIFY')
-            .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.sellerAddress1)))
-            .add('OP_ELSE')
-            .add(bitcore.crypto.BN.fromNumber(1513412288).toScriptNumBuffer())
-            .add('OP_CHECKLOCKTIMEVERIFY')
-            .add('OP_DROP')
-            .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(fromAddress)))
-            .add('OP_ENDIF')
-
-        const newTransaction = bitcore
-            .Transaction() // create new tx
-            .from(utxo) // from oldTransaction
-            .addOutput(
-                new bitcore.Transaction.Output({
-                    script: script,
-                    satoshis: _swap.amount1 * 100000000 - 9999,
-                })
-            )
-            .change(fromAddress)
-            .sign(privateKey)
-
-        // https://live.blockcypher.com/btc-testnet/decodetx/
-        const data = await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: newTransaction.toString()})
-        console.log('wallet/bitcoin.js::pay()::data.txid =', data.txid)
-        return data.txid
     },
 
     spend: async (_swap) => {
