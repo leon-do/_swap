@@ -1,7 +1,7 @@
 const bitcoin = {
     address: (_swap) => {
         console.log('bitcoin.js:address()')
-        const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
+        const privateKey = bitcore.PrivateKey.fromWIF(private_key.bitcoin)
         return privateKey.toAddress().toString()
     },
 
@@ -13,7 +13,7 @@ const bitcoin = {
         console.log('wallet/bitcoin.js::spend()')
 
         // convert wif to a private key
-        const privateKey = bitcore.PrivateKey.fromWIF('cSzA19UGQKwxVdL3TgidXY35SZ3pKEXyxBTxc6893hoEMwTgNUQx')
+        const privateKey = bitcore.PrivateKey.fromWIF(private_key.bitcoin)
 
         // get public key
         const myPublicKey = new bitcore.PublicKey(privateKey)

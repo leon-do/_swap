@@ -7,9 +7,8 @@ const ethereum = {
 		console.log('wallet/ethereum.js::pay()')
 
 		return new Promise((resolve, reject) => {
-			const privateKey = '0x505bdbc30b8f84d06dbfb4c780a5504c87a2a13731f11c41c0f9b4247b719985'
 	    	const provider = ethers.providers.getDefaultProvider('rinkeby');
-			const wallet = new ethers.Wallet(privateKey, provider)
+			const wallet = new ethers.Wallet(private_key.ethereum, provider)
 			const timeLock = 60
 
 			// solidity code
@@ -45,9 +44,8 @@ const ethereum = {
 		console.log('wallet/ethereum.js::spend()')
 		
 		return new Promise((resolve, reject) => {
-			const privateKey = '0x505bdbc30b8f84d06dbfb4c780a5504c87a2a13731f11c41c0f9b4247b719985'
 	  		const provider = ethers.providers.getDefaultProvider('rinkeby');
-			const wallet = new ethers.Wallet(privateKey, provider)
+			const wallet = new ethers.Wallet(private_key.ethereum, provider)
 			const timeLock = 60
 
 			// solidity code
