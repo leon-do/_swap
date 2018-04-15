@@ -1,6 +1,6 @@
 const ethereum = {
 	address: (_swap) => {
-		return '0x5873E7b7F909B4F76ce4B7B3338DB674F1aC3a02'
+		return '0x' + privateToAddress(private_key.ethereum).toString('hex')
 	},
 
 	pay: (_swap) => {

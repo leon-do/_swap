@@ -2,10 +2,11 @@ const request = require('request')
 const ethers = require('ethers')
 const solc = require('solc')
 const private_key = require('../database/private_key.js')
+const { privateToAddress } = require('ethereumjs-util')
 
 module.exports = {
 	address: (_swap) => {
-        return '0xe0578E4fd431e57B38C7bCD72036629f803df515'
+		return '0x' + privateToAddress(private_key.ethereum).toString('hex')
     },
 
     timeLock: (_swap) => {
@@ -53,18 +54,19 @@ module.exports = {
         const seconds = 60
 
 		const provider = ethers.providers.getDefaultProvider('rinkeby')
+		console.log('provider', provider)
 		const wallet = new ethers.Wallet(private_key.ethereum, provider)		
+		console.log('wallet', wallet)
 		const input = `pragma solidity ^0.4.0; contract HTLC { uint public lockTime = ${seconds} seconds; address public toAddress = ${_swap.buyerAddress1}; bytes32 public hash = 0x${_swap.hash}; uint public startTime = now; address public fromAddress; string public key; uint public fromValue; function HTLC() payable { fromAddress = msg.sender; fromValue = msg.value; } modifier condition(bool _condition) { require(_condition); _; } function checkKey(string _key) payable condition ( sha256(_key) == hash ) returns (string) { toAddress.transfer(fromValue); key = _key; return key; } function withdraw () payable condition ( startTime + lockTime < now ) returns (uint) { fromAddress.transfer(fromValue); return fromValue; } }`
 		const output = solc.compile(input, 1)
+		
 
 		let abi
 		for (const contractName in output.contracts) {
 		   	abi = JSON.parse(output.contracts[contractName].interface)
 		}
-
-		const contract = new ethers.Contract(_swap.transaction1, abi, wallet)
+		const contract = new ethers.Contract(_swap.buyerTransaction1, abi, wallet)
 		const sendPromise = await contract.checkKey(_swap.key)
-		console.log('wallet/ethereum.js::spend() sendPromise.hash =', sendPromise.hash)
 		return sendPromise.hash
 	},
 
@@ -85,7 +87,7 @@ module.exports = {
 		   	abi = JSON.parse(output.contracts[contractName].interface)
 		}
 
-		const contract = new ethers.Contract(_swap.transaction1, abi, wallet);
+		const contract = new ethers.Contract(_swap.sellerTransaction1, abi, wallet);
 
 		const sendPromise = await contract.withdraw()
 
