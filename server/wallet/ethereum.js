@@ -14,7 +14,7 @@ module.exports = {
     },
 
 	pay: async (_swap) => {
-		console.log('wallet/ethereum.js::pay()')
+		console.log('wallet/ethereum.js::pay()', _swap)
 
 		const provider = ethers.providers.getDefaultProvider('rinkeby')
 		const wallet = new ethers.Wallet(private_key.ethereum, provider)	
@@ -40,7 +40,7 @@ module.exports = {
 		let contractAddress
 		while (contractAddress === undefined) {
 			await pause(5000)
-			console.log('waiting for contract address...')
+			console.log('waiting for contract address...', transaction.hash)
 			contractAddress = await getContractAddress(transaction.hash)
 		}
 		console.log('wallet/ethereum.js::pay()::contractAddress =', contractAddress)
