@@ -1,15 +1,13 @@
 const bitcoin = {
-    address: (_swap) => {
+    address: _swap => {
         console.log('bitcoin.js:address()')
         const privateKey = bitcore.PrivateKey.fromWIF(private_key.bitcoin)
         return privateKey.toAddress().toString()
     },
 
-    pay: async (_swap) => {
+    pay: async _swap => {},
 
-    },
-
-    spend: async (_swap) => {
+    spend: async _swap => {
         console.log('wallet/bitcoin.js::spend()')
 
         // convert wif to a private key
@@ -23,7 +21,7 @@ const bitcoin = {
 
         // get utxo data to add to new transaction
         let utxoData = undefined
-        while (utxoData === undefined){
+        while (utxoData === undefined) {
             await pause(5000)
             console.log('fetching bitcoin transaction...')
             utxoData = await spendUtxoData(_swap.transaction2)
@@ -54,19 +52,25 @@ const bitcoin = {
             .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.sellerAddress2)))
             .add('OP_ENDIF')
 
-        const refundTransaction = new bitcore.Transaction().from({
-            txid: _swap.transaction2,
-            vout: vout,
-            scriptPubKey: redeemScript.toScriptHashOut(),
-            satoshis: inputAmount,
-        })
+        const refundTransaction = new bitcore.Transaction()
+            .from({
+                txid: _swap.transaction2,
+                vout: vout,
+                scriptPubKey: redeemScript.toScriptHashOut(),
+                satoshis: inputAmount
+            })
             .to(fromAddress, inputAmount - 1000) // or Copay: mqsscUaTAy3pjwgg7LVnQWr2dFCKphctM2
-            .lockUntilDate(1513412288); // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
+            .lockUntilDate(1513412288) // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
 
+        refundTransaction.inputs[0].sequenceNumber = 0 // the CLTV opcode requires that the input's sequence number not be finalized
 
-        refundTransaction.inputs[0].sequenceNumber = 0; // the CLTV opcode requires that the input's sequence number not be finalized
-
-        const signature = bitcore.Transaction.sighash.sign(refundTransaction, privateKey, bitcore.crypto.Signature.SIGHASH_ALL, 0, redeemScript);
+        const signature = bitcore.Transaction.sighash.sign(
+            refundTransaction,
+            privateKey,
+            bitcore.crypto.Signature.SIGHASH_ALL,
+            0,
+            redeemScript
+        )
 
         // setup the scriptSig of the spending transaction to spend the p2sh-cltv-p2pkh redeem script
         refundTransaction.inputs[0].setScript(
@@ -80,76 +84,80 @@ const bitcoin = {
 
         console.log('refundTransaction', refundTransaction)
 
-        const data = await $.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: refundTransaction.toString()})
+        const data = await $.post('https://test-insight.bitpay.com/api/tx/send', {
+            rawtx: refundTransaction.toString()
+        })
         console.log('wallet/bitcoin.js::spend()::data.txid =', data.txid)
         return data.txid
     },
 
-    redeem: async (_swap) => {
+    redeem: async _swap => {
         return 'bitcoinredeemScript'
-    },
+    }
 }
 
-
-
 //  https://testnet-api.smartbit.com.au/v1/blockchain/address/mpfNnLq357BjK5btmefSGT38PsQQgMkZXB
-function payUtxoData(_address, _amount){
-    return new Promise (resolve => {
+function payUtxoData(_address, _amount) {
+    return new Promise(resolve => {
         fetch(`https://testnet-api.smartbit.com.au/v1/blockchain/address/${_address}`)
             .then(response => {
-            return response.json()
-        }).then(data => {
-            const transactions = data.address.transactions
-            // loop through transactions
-            for (let i in transactions){
-                // loop through the output of each transaction
-                for (let j in transactions[i].outputs){
-                    // if output has BTC and it belongs to me
-                    if (transactions[i].outputs[j].spend_txid !== 'null' && transactions[i].outputs[j].value_int > _amount && transactions[i].outputs[j].addresses[0] === _address) {
-                        resolve({
-                            value_int: transactions[i].outputs[j].value_int,
-                            txid: transactions[i].txid,
-                            script_pub_key: transactions[i].outputs[j].script_pub_key.hex,
-                            vout: transactions[i].outputs[j].n
-                        })
+                return response.json()
+            })
+            .then(data => {
+                const transactions = data.address.transactions
+                // loop through transactions
+                for (let i in transactions) {
+                    // loop through the output of each transaction
+                    for (let j in transactions[i].outputs) {
+                        // if output has BTC and it belongs to me
+                        if (
+                            transactions[i].outputs[j].spend_txid !== 'null' &&
+                            transactions[i].outputs[j].value_int > _amount &&
+                            transactions[i].outputs[j].addresses[0] === _address
+                        ) {
+                            resolve({
+                                value_int: transactions[i].outputs[j].value_int,
+                                txid: transactions[i].txid,
+                                script_pub_key: transactions[i].outputs[j].script_pub_key.hex,
+                                vout: transactions[i].outputs[j].n
+                            })
+                        }
                     }
                 }
-            }
-        })
+            })
     })
 }
 
 //  https://testnet-api.smartbit.com.au/v1/blockchain/address/mpfNnLq357BjK5btmefSGT38PsQQgMkZXB
-function spendUtxoData (_transactionId) {
+function spendUtxoData(_transactionId) {
     return new Promise(resolve => {
-    fetch(`https://testnet-api.smartbit.com.au/v1/blockchain/tx/${_transactionId}`)
-        .then(response => {
-            return response.json()
-        }).then(data => {
-            return resolve({
-                value_int: data.transaction.outputs[0].value_int,
-                txid: _transactionId,
-                script_pub_key: data.transaction.outputs[0].script_pub_key.hex,
-                vout: data.transaction.outputs[0].n,
-                sequence: data.transaction.inputs[0].sequence
+        fetch(`https://testnet-api.smartbit.com.au/v1/blockchain/tx/${_transactionId}`)
+            .then(response => {
+                return response.json()
             })
-        })
+            .then(data => {
+                return resolve({
+                    value_int: data.transaction.outputs[0].value_int,
+                    txid: _transactionId,
+                    script_pub_key: data.transaction.outputs[0].script_pub_key.hex,
+                    vout: data.transaction.outputs[0].n,
+                    sequence: data.transaction.inputs[0].sequence
+                })
+            })
     })
 }
-
 
 function toHex(str) {
     let hex = ''
-    for(let i=0;i<str.length;i++) {
-        hex += ''+str.charCodeAt(i).toString(16)
+    for (let i = 0; i < str.length; i++) {
+        hex += '' + str.charCodeAt(i).toString(16)
     }
     return hex
 }
 
-
-function pause(milliseconds){
+function pause(milliseconds) {
     return new Promise(resolve => {
-        setTimeout(function(){ 
+        setTimeout(function() {
             resolve(true)
         }, milliseconds)
     })

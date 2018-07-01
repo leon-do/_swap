@@ -1,18 +1,20 @@
 const bitcore = require('bitcore-lib')
 const request = require('request')
-const Insight = require("bitcore-explorers").Insight
-const insight = new Insight("testnet")
+const Insight = require('bitcore-explorers').Insight
+const insight = new Insight('testnet')
 const private_key = require('../database/private_key.js')
 
-function address (_swap) {
-    return bitcore.PrivateKey.fromWIF(private_key.bitcoin).toAddress().toString()
+function address(_swap) {
+    return bitcore.PrivateKey.fromWIF(private_key.bitcoin)
+        .toAddress()
+        .toString()
 }
 
-function timeLock (_swap) {
-    return Math.floor(Date.now()/1000)
+function timeLock(_swap) {
+    return Math.floor(Date.now() / 1000)
 }
 
-function pay (_swap) {
+function pay(_swap) {
     console.log('wallet/bitcoin.js::pay()')
 
     return new Promise(async (resolve, reject) => {
@@ -40,12 +42,12 @@ function pay (_swap) {
 
         // create unsigned transaction out
         const utxo = new bitcore.Transaction.UnspentOutput({
-            "txid" : oldTransaction,
-            "vout" : vout,
-            "address" : fromAddress,
-            "scriptPubKey" : scriptPubKey,
-            "satoshis" : inputAmount
-        });
+            txid: oldTransaction,
+            vout: vout,
+            address: fromAddress,
+            scriptPubKey: scriptPubKey,
+            satoshis: inputAmount
+        })
 
         // build the script
         const script = bitcore
@@ -72,15 +74,16 @@ function pay (_swap) {
             .sign(privateKey)
 
         insight.broadcast(newTransaction.toString(), function(error, transactionId) {
-            if (error) { reject(error)}
+            if (error) {
+                reject(error)
+            }
             console.log('wallet/bitcoin.js::pay() transactionId =', transactionId)
             resolve(transactionId)
         })
-
     })
 }
 
-async function spend (_swap) {
+async function spend(_swap) {
     console.log('wallet/bitcoin.js::spend()')
 
     // convert wif to a private key
@@ -94,10 +97,10 @@ async function spend (_swap) {
 
     // get utxo data to add to new transaction
     let utxoData = undefined
-    while (utxoData === undefined){
+    while (utxoData === undefined) {
         console.log('fetching bitcoin transaction...')
         utxoData = await spendUtxoData(_swap.buyerTransaction1)
-	    await pause(500)
+        await pause(500)
     }
 
     // get value 1921977
@@ -121,19 +124,25 @@ async function spend (_swap) {
         .add(bitcore.Script.buildPublicKeyHashOut(bitcore.Address.fromString(_swap.sellerAddress1)))
         .add('OP_ENDIF')
 
-    const refundTransaction = new bitcore.Transaction().from({
-        txid: _swap.buyerTransaction1,
-        vout: vout,
-        scriptPubKey: redeemScript.toScriptHashOut(),
-        satoshis: inputAmount,
-    })
+    const refundTransaction = new bitcore.Transaction()
+        .from({
+            txid: _swap.buyerTransaction1,
+            vout: vout,
+            scriptPubKey: redeemScript.toScriptHashOut(),
+            satoshis: inputAmount
+        })
         .to(fromAddress, inputAmount - 1000) // or Copay: mqsscUaTAy3pjwgg7LVnQWr2dFCKphctM2
-        .lockUntilDate(1513412288); // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
+        .lockUntilDate(1513412288) // CLTV requires the transaction nLockTime to be >= the stack argument in the redeem script
 
+    refundTransaction.inputs[0].sequenceNumber = 0 // the CLTV opcode requires that the input's sequence number not be finalized
 
-    refundTransaction.inputs[0].sequenceNumber = 0; // the CLTV opcode requires that the input's sequence number not be finalized
-
-    const signature = bitcore.Transaction.sighash.sign(refundTransaction, privateKey, bitcore.crypto.Signature.SIGHASH_ALL, 0, redeemScript);
+    const signature = bitcore.Transaction.sighash.sign(
+        refundTransaction,
+        privateKey,
+        bitcore.crypto.Signature.SIGHASH_ALL,
+        0,
+        redeemScript
+    )
 
     // setup the scriptSig of the spending transaction to spend the p2sh-cltv-p2pkh redeem script
     refundTransaction.inputs[0].setScript(
@@ -145,30 +154,32 @@ async function spend (_swap) {
             .add(redeemScript.toBuffer())
     )
 
-	// broadcast
-	const transactionId = await broadcast(refundTransaction)
-	console.log('transactionId:', transactionId)
+    // broadcast
+    const transactionId = await broadcast(refundTransaction)
+    console.log('transactionId:', transactionId)
     return transactionId
 }
 
-async function redeem (_swap) {
+async function redeem(_swap) {
     return 'bitcoinRedeemTransaction'
 }
 
-
-
 //  https://testnet-api.smartbit.com.au/v1/blockchain/address/mpfNnLq357BjK5btmefSGT38PsQQgMkZXB
-function payUtxoData (_address, _amount) {
+function payUtxoData(_address, _amount) {
     return new Promise(resolve => {
         request(`https://testnet-api.smartbit.com.au/v1/blockchain/address/${_address}`, (err, res, body) => {
             const data = JSON.parse(body)
             const transactions = data.address.transactions
             // loop through transactions
-            for (let i in transactions){
+            for (let i in transactions) {
                 // loop through the output of each transaction
-                for (let j in transactions[i].outputs){
+                for (let j in transactions[i].outputs) {
                     // if output has BTC and it belongs to me
-                    if (transactions[i].outputs[j].spend_txid !== 'null' && transactions[i].outputs[j].value_int > _amount && transactions[i].outputs[j].addresses[0] === _address) {
+                    if (
+                        transactions[i].outputs[j].spend_txid !== 'null' &&
+                        transactions[i].outputs[j].value_int > _amount &&
+                        transactions[i].outputs[j].addresses[0] === _address
+                    ) {
                         return resolve({
                             value_int: transactions[i].outputs[j].value_int,
                             txid: transactions[i].txid,
@@ -182,8 +193,7 @@ function payUtxoData (_address, _amount) {
     })
 }
 
-
-function spendUtxoData (_transactionId) {
+function spendUtxoData(_transactionId) {
     return new Promise(resolve => {
         request(`https://testnet-api.smartbit.com.au/v1/blockchain/tx/${_transactionId}`, (err, res, body) => {
             try {
@@ -196,7 +206,7 @@ function spendUtxoData (_transactionId) {
                     sequence: data.transaction.inputs[0].sequence
                 })
             } catch (e) {
-	            resolve(undefined)
+                resolve(undefined)
             }
         })
     })
@@ -204,27 +214,29 @@ function spendUtxoData (_transactionId) {
 
 function toHex(str) {
     let hex = ''
-    for(let i=0;i<str.length;i++) {
-        hex += ''+str.charCodeAt(i).toString(16)
+    for (let i = 0; i < str.length; i++) {
+        hex += '' + str.charCodeAt(i).toString(16)
     }
     return hex
 }
 
 function broadcast(_transaction) {
-	return new Promise ((resolve, reject) => {
-		insight.broadcast(_transaction.toString(), (error, transactionId) => {
-			if (error) { reject(error) }
-			resolve(transactionId)
-		})
-	})
+    return new Promise((resolve, reject) => {
+        insight.broadcast(_transaction.toString(), (error, transactionId) => {
+            if (error) {
+                reject(error)
+            }
+            resolve(transactionId)
+        })
+    })
 }
 
-function pause(milliseconds){
+function pause(milliseconds) {
     return new Promise(resolve => {
-        setTimeout(function(){ 
+        setTimeout(function() {
             resolve(true)
         }, milliseconds)
     })
 }
 
-module.exports = { address,  timeLock,  pay,  spend,  redeem }
+module.exports = { address, timeLock, pay, spend, redeem }
